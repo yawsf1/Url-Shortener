@@ -78,7 +78,7 @@ resources/
     │   ├── Login.vue                # Login form
     │   └── Register.vue             # Register form
     └── Layouts/
-        └── Layout.vue               # Shared navbar layout
+        └── Layout.vue               # Shared layout
 routes/
 └── web.php                          # All application routes
 bootstrap/
@@ -99,7 +99,7 @@ database/
 | email | string | Unique |
 | password | string | Hashed |
 | avatar | string | Nullable |
-| remember_token | string | For "Remember Me" |
+| remember | boolean | For "Remember Me" |
 | timestamps | | |
 
 ### `urls`
