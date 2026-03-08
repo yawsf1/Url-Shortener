@@ -13,6 +13,7 @@ A modern, full-stack URL shortener built with **Laravel 12**, **Vue 3**, and **I
 | Styling | Custom CSS (Poppins & Unbounded fonts, Font Awesome icons) |
 | Build Tool | Vite |
 | Database | MySQL / SQLite |
+| Cache | Redis |
 
 ---
 
@@ -22,11 +23,6 @@ A modern, full-stack URL shortener built with **Laravel 12**, **Vue 3**, and **I
 - Shorten any long URL with a custom name
 - Shortened URLs redirect to their original destination instantly
 - Each URL card displays the name, original URL, and shortened URL side by side
-
-### Guest Mode
-- Guests can shorten URLs without registering
-- Guest URLs are stored in `localStorage` and displayed in the session
-- When a guest registers or logs in, their locally saved URLs are automatically migrated to their account
 
 ### Authentication
 - **Register** with name, email, and password
@@ -51,6 +47,13 @@ A modern, full-stack URL shortener built with **Laravel 12**, **Vue 3**, and **I
 - Authenticated users can delete any of their shortened URLs
 - Guest users can remove URLs from their local list
 - All URL cards show name, original URL, and shortened link with clickable anchors
+
+### Redis Caching
+- Shortened URL redirects are cached in **Redis** for **1 hour** (TTL: 3600s)
+- On redirect, the app checks Redis first — if the key exists, it skips the database entirely
+- On a cache miss, it queries the database and stores the result in Redis for subsequent requests
+- Cache key format: `url:{shortCode}`
+- Significantly reduces database load for frequently accessed URLs
 
 ---
 
@@ -128,7 +131,11 @@ npm install
 cp .env.example .env
 php artisan key:generate
 
-# Configure your database in .env, then run migrations
+# Configure your database and Redis in .env
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+
+# Then run migrations
 php artisan migrate
 
 # Start dev servers
