@@ -1,59 +1,161 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# shortRL — URL Shortener
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A modern, full-stack URL shortener built with **Laravel 12**, **Vue 3**, and **Inertia.js**.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tech Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Layer | Technology |
+|-------|-----------|
+| Backend | Laravel 12 (PHP) |
+| Frontend | Vue 3 + Inertia.js |
+| Styling | Custom CSS (Poppins & Unbounded fonts, Font Awesome icons) |
+| Build Tool | Vite |
+| Database | MySQL / SQLite |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### URL Shortening
+- Shorten any long URL with a custom name
+- Shortened URLs redirect to their original destination instantly
+- Each URL card displays the name, original URL, and shortened URL side by side
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Guest Mode
+- Guests can shorten URLs without registering
+- Guest URLs are stored in `localStorage` and displayed in the session
+- When a guest registers or logs in, their locally saved URLs are automatically migrated to their account
 
-## Laravel Sponsors
+### Authentication
+- **Register** with name, email, and password
+- **Login** with email and password
+- **Remember Me** toggle — persists login session using Laravel's long-lived remember token
+- **Logout** with session flash confirmation
+- Password field eye icon toggle to show/hide password on both Login and Register pages
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Security
+- Rate limiting on login and register routes (`throttle:5,1` — 5 attempts per minute)
+- When the rate limit is hit, a friendly flash error message is shown automatically via Laravel's exception handler
+- Passwords validated against the **Have I Been Pwned** database — rejects compromised passwords
+- Session regeneration after login to prevent session fixation attacks
+- CSRF protection on all forms via Inertia
 
-### Premium Partners
+### Flash Notifications
+- Success and error flash messages displayed at the top of the page
+- Auto-dismiss after 3 seconds
+- Covers: login, logout, register, invalid credentials, rate limiting, and URL operations
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### URL Management
+- Authenticated users can delete any of their shortened URLs
+- Guest users can remove URLs from their local list
+- All URL cards show name, original URL, and shortened link with clickable anchors
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Project Structure
 
-## Code of Conduct
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── AuthController.php       # Register, Login, Logout
+│   │   └── UrlController.php        # Shorten, Redirect, Delete
+│   └── Requests/
+│       ├── LoginRequest.php         # Validation: email, password, remember
+│       └── RegisterRequest.php      # Validation: name, email, password + uncompromised check
+├── Models/
+│   ├── User.php
+│   └── Url.php
+resources/
+└── js/
+    ├── Pages/
+    │   ├── Home.vue                 # Main shortener page
+    │   ├── Login.vue                # Login form
+    │   └── Register.vue             # Register form
+    └── Layouts/
+        └── Layout.vue               # Shared navbar layout
+routes/
+└── web.php                          # All application routes
+bootstrap/
+└── app.php                          # Exception handler (rate limit flash)
+database/
+└── migrations/                      # users, urls, sessions tables
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## Database Schema
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### `users`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | bigint | Primary key |
+| name | string | |
+| email | string | Unique |
+| password | string | Hashed |
+| avatar | string | Nullable |
+| remember_token | string | For "Remember Me" |
+| timestamps | | |
+
+### `urls`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | bigint | Primary key |
+| name | string | Custom label |
+| original_url | string | Full URL |
+| short_url | string | Generated short code |
+| user_id | foreignId | Nullable (guest URLs have null) |
+| timestamps | | |
+
+---
+
+## Installation
+
+```bash
+# Clone the repo
+git clone https://github.com/yawsf1/Url-Shortener.git
+cd Url-Shortener
+
+# Install PHP dependencies
+composer install
+
+# Install JS dependencies
+npm install
+
+# Set up environment
+cp .env.example .env
+php artisan key:generate
+
+# Configure your database in .env, then run migrations
+php artisan migrate
+
+# Start dev servers
+php artisan serve
+npm run dev
+```
+
+---
+
+## Routes
+
+| Method | URI | Description |
+|--------|-----|-------------|
+| GET | `/` | Home page |
+| POST | `/shorten` | Create a shortened URL |
+| DELETE | `/shorten/{id}` | Delete a URL |
+| GET | `/{shortCode}` | Redirect to original URL |
+| GET | `/register` | Register page |
+| POST | `/auth/register` | Handle registration |
+| GET | `/login` | Login page |
+| POST | `/auth/login` | Handle login |
+| POST | `/auth/logout` | Handle logout |
+
+> Login and Register routes are rate limited to **5 requests per minute** per IP.
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT
